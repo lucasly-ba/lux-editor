@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/rust-2024-orange.svg" alt="Rust 2024">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT">
-  <img src="https://img.shields.io/badge/tests-73-brightgreen.svg" alt="73 tests">
+  <img src="https://img.shields.io/badge/tests-84-brightgreen.svg" alt="84 tests">
 </p>
 
 ---
@@ -62,7 +62,7 @@ Everything here is implemented from scratch unless noted:
 
 #### Polish
 - Line-number gutter, visual selection, mode-aware cursor shape, status line.
-- Tested (73 tests) and documented (see [`ARCHITECTURE.md`](ARCHITECTURE.md) and
+- Tested (84 tests) and documented (see [`ARCHITECTURE.md`](ARCHITECTURE.md) and
   the build log in [`JOURNEY.md`](JOURNEY.md)).
 
 [tree-sitter]: https://tree-sitter.github.io/
@@ -139,7 +139,7 @@ piece is built the way it is.
 ## Testing
 
 ```sh
-cargo test          # 73 unit + integration tests
+cargo test          # 80 unit + 3 integration (+1 ignored live)
 cargo clippy        # lint clean
 ```
 
