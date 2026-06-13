@@ -2,6 +2,25 @@
 name = "lux"
 version = "0.1.0"
 edition = "2024"
+description = "A modal, Helix-inspired terminal text editor written from scratch in Rust"
+license = "MIT"
+repository = "https://github.com/lucasly-ba/lux"
+readme = "README.md"
+
+# Library + binary split: the library holds all the editor logic so it can be
+# unit- and integration-tested, while the binary is a thin wrapper that wires
+# up the terminal and runs the event loop.
+[lib]
+name = "lux"
+path = "src/lib.rs"
+
+[[bin]]
+name = "lux"
+path = "src/main.rs"
 
 [dependencies]
 crossterm = "0.26"
+
+[profile.release]
+lto = true
+codegen-units = 1
