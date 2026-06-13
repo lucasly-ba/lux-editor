@@ -24,6 +24,7 @@ pub mod app;
 pub mod editor;
 pub mod history;
 pub mod input;
+pub mod lsp;
 pub mod rope;
 pub mod syntax;
 pub mod text;
