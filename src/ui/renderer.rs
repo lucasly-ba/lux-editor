@@ -252,7 +252,13 @@ fn draw_status_line(
     let pad = cols.saturating_sub(line.chars().count() + right.chars().count());
     line.push_str(&" ".repeat(pad));
     line.push_str(&right);
-    let line: String = line.chars().take(cols).collect();
+    // Diagnostic messages from the server are often multi-line; collapse any
+    // control characters to spaces so they can't break the single status row.
+    let line: String = line
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .take(cols)
+        .collect();
 
     queue!(
         out,
@@ -312,7 +318,11 @@ fn draw_menu(
         let Some(item) = menu.items.get(idx) else {
             break;
         };
-        let mut label: String = item.chars().take(width - 1).collect();
+        let mut label: String = item
+            .chars()
+            .map(|c| if c.is_control() { ' ' } else { c })
+            .take(width - 1)
+            .collect();
         while label.chars().count() < width {
             label.push(' ');
         }
