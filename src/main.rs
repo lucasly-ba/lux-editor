@@ -1,29 +1,33 @@
 //! Binary entry point for the `lux` editor.
 //!
 //! This stays deliberately thin: it parses command-line arguments and hands
-//! control to the library. All of the interesting logic lives in `src/lib.rs`
-//! and the modules beneath it so that it can be tested without a terminal.
+//! control to [`lux::app::run`]. All of the interesting logic lives in the
+//! library so that it can be tested without a terminal.
 
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
 
-    match args.next().as_deref() {
+    let path = match args.next().as_deref() {
         Some("--version" | "-V") => {
             println!("lux {}", lux::VERSION);
-            ExitCode::SUCCESS
+            return ExitCode::SUCCESS;
         }
         Some("--help" | "-h") => {
             print_help();
-            ExitCode::SUCCESS
+            return ExitCode::SUCCESS;
         }
-        // A file path (or nothing) will eventually open the editor. The event
-        // loop is wired up in a later step; for now we acknowledge the request
-        // so the binary is runnable end to end.
-        _file => {
-            print_help();
-            ExitCode::SUCCESS
+        Some(file) => Some(PathBuf::from(file)),
+        None => None,
+    };
+
+    match lux::app::run(path) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("lux: {e}");
+            ExitCode::FAILURE
         }
     }
 }
@@ -37,4 +41,17 @@ fn print_help() {
     println!("OPTIONS:");
     println!("    -h, --help       Print this help");
     println!("    -V, --version    Print the version");
+    println!();
+    println!("KEYS (normal mode):");
+    println!("    h j k l          move left/down/up/right");
+    println!("    w b              next/previous word");
+    println!("    0 $              start/end of line");
+    println!("    gg G             start/end of buffer");
+    println!("    i a I A o O      enter insert mode");
+    println!("    v                enter visual mode");
+    println!("    x  dd            delete char / line");
+    println!("    u  Ctrl-r        undo / redo");
+    println!("    p                paste");
+    println!("    Ctrl-s           save");
+    println!("    Ctrl-q  Ctrl-x   quit / force quit");
 }

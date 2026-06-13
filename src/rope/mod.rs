@@ -108,17 +108,21 @@ impl Node {
             }
             Node::Branch { left, right, .. } => {
                 let left_chars = left.chars();
-                if at < left_chars {
-                    // The cut lands inside the left child.
-                    let (ll, lr) = left.split(at);
-                    (ll, Node::concat(lr, *right))
-                } else if at > left_chars {
-                    // The cut lands inside the right child.
-                    let (rl, rr) = right.split(at - left_chars);
-                    (Node::concat(*left, rl), rr)
-                } else {
-                    // The cut lands exactly on the boundary between children.
-                    (*left, *right)
+                match at.cmp(&left_chars) {
+                    std::cmp::Ordering::Less => {
+                        // The cut lands inside the left child.
+                        let (ll, lr) = left.split(at);
+                        (ll, Node::concat(lr, *right))
+                    }
+                    std::cmp::Ordering::Greater => {
+                        // The cut lands inside the right child.
+                        let (rl, rr) = right.split(at - left_chars);
+                        (Node::concat(*left, rl), rr)
+                    }
+                    std::cmp::Ordering::Equal => {
+                        // The cut lands exactly on the boundary between children.
+                        (*left, *right)
+                    }
                 }
             }
         }
@@ -276,6 +280,10 @@ impl Rope {
     }
 
     /// Build a rope from a string slice, chunking it into balanced leaves.
+    ///
+    /// Named `from_str` to match `ropey`/`String` conventions; it is an
+    /// inherent method, not the `FromStr` trait (which is fallible).
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Rope {
         let leaves = leaves_from_str(s);
         Rope {

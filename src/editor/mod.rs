@@ -122,6 +122,25 @@ impl Editor {
         }
     }
 
+    /// The selected character range, if in visual mode. Used by the renderer
+    /// to highlight the selection.
+    pub fn selection_char_range(&self) -> Option<std::ops::Range<usize>> {
+        self.anchor
+            .map(|anchor| selection::selection_range(&self.buffer, anchor, self.cursor))
+    }
+
+    /// Scroll the viewport so the cursor is visible within `height` text rows.
+    pub fn ensure_visible(&mut self, height: usize) {
+        if height == 0 {
+            return;
+        }
+        if self.cursor.line < self.scroll {
+            self.scroll = self.cursor.line;
+        } else if self.cursor.line >= self.scroll + height {
+            self.scroll = self.cursor.line - height + 1;
+        }
+    }
+
     // --- small helpers ------------------------------------------------------
 
     /// The cursor as a flat character index.
