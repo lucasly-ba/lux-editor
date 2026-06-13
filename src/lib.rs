@@ -25,6 +25,7 @@ pub mod editor;
 pub mod history;
 pub mod input;
 pub mod rope;
+pub mod syntax;
 pub mod text;
 pub mod ui;
 

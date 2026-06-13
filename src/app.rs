@@ -17,6 +17,7 @@ use crossterm::{ExecutableCommand, execute};
 
 use crate::editor::Editor;
 use crate::input::Input;
+use crate::syntax::Highlighter;
 use crate::text::Buffer;
 use crate::ui::{Theme, render};
 
@@ -50,6 +51,12 @@ pub fn run(path: Option<PathBuf>) -> io::Result<()> {
     let mut input = Input::new();
     let theme = Theme::default();
 
+    // Enable syntax highlighting if the file extension is recognised.
+    let mut highlighter = path.as_deref().and_then(Highlighter::for_path);
+    if let Some(h) = &mut highlighter {
+        h.reparse(editor.buffer.rope());
+    }
+
     let _guard = TerminalGuard::enter()?;
     let mut out = io::stdout();
 
@@ -58,8 +65,11 @@ pub fn run(path: Option<PathBuf>) -> io::Result<()> {
         let text_rows = rows.saturating_sub(1) as usize;
         editor.ensure_visible(text_rows);
 
-        // Syntax highlighting spans are added in a later step; render plain for now.
-        render(&mut out, &editor, &[], cols, rows, &theme)?;
+        let highlights = match &highlighter {
+            Some(h) => h.spans(editor.buffer.rope(), editor.scroll, text_rows),
+            None => Vec::new(),
+        };
+        render(&mut out, &editor, &highlights, cols, rows, &theme)?;
         out.flush()?;
 
         if editor.should_quit {
@@ -70,8 +80,16 @@ pub fn run(path: Option<PathBuf>) -> io::Result<()> {
         // redraw on the next loop iteration.
         if let Event::Key(key) = event::read()? {
             if matches!(key.kind, KeyEventKind::Press | KeyEventKind::Repeat) {
+                let version_before = editor.buffer.version();
                 let action = input.resolve(editor.mode, key);
                 editor.apply_action(action);
+
+                // Re-parse incrementally only when the text actually changed.
+                if editor.buffer.version() != version_before {
+                    if let Some(h) = &mut highlighter {
+                        h.reparse(editor.buffer.rope());
+                    }
+                }
             }
         }
     }

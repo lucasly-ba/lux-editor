@@ -20,6 +20,11 @@ path = "src/main.rs"
 
 [dependencies]
 crossterm = "0.26"
+# Incremental parsing for syntax highlighting. tree-sitter is the same parser
+# generator Helix, Neovim and (in spirit) Apple's tooling use; the grammar is
+# real C compiled at build time, not a regex.
+tree-sitter = "0.22"
+tree-sitter-rust = "0.21"
 
 [profile.release]
 lto = true
