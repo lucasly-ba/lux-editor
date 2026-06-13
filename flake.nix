@@ -24,6 +24,13 @@
             clippy
             rustfmt
             rust-analyzer
+            # tree-sitter language grammars are C and get compiled by the `cc`
+            # crate at build time, and rustc shells out to `cc` to link the
+            # final binary. Without a C toolchain the build fails with
+            # `linker `cc` not found`.
+            gcc
+            # Some -sys crates probe the system with pkg-config.
+            pkg-config
           ];
         };
       });
