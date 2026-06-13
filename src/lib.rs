@@ -20,6 +20,7 @@
 //! Modules are added one at a time as the editor grows; see `JOURNEY.md` at the
 //! repository root for the story of how each piece was built.
 
+pub mod history;
 pub mod rope;
 pub mod text;
 
