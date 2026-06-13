@@ -85,13 +85,6 @@ impl Json {
         }
     }
 
-    /// Serialize to a compact JSON string.
-    pub fn to_string(&self) -> String {
-        let mut out = String::new();
-        self.write(&mut out);
-        out
-    }
-
     fn write(&self, out: &mut String) {
         match self {
             Json::Null => out.push_str("null"),
@@ -144,6 +137,16 @@ impl Json {
             return Err("trailing characters after JSON value".to_string());
         }
         Ok(value)
+    }
+}
+
+/// Compact JSON serialization. Implementing `Display` gives a `to_string()`
+/// for free and is what callers (the transport) use.
+impl std::fmt::Display for Json {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut out = String::new();
+        self.write(&mut out);
+        f.write_str(&out)
     }
 }
 

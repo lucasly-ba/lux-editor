@@ -3,5 +3,5 @@
 pub mod renderer;
 pub mod theme;
 
-pub use renderer::{HighlightSpan, render};
+pub use renderer::{CompletionMenu, HighlightSpan, LineDiagnostic, View, render};
 pub use theme::Theme;

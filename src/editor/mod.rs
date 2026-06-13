@@ -59,6 +59,9 @@ pub enum Action {
     EnterNormal,
     // Editing
     InsertChar(char),
+    /// Insert a whole string at the cursor as a single undo step (used when
+    /// accepting an LSP completion).
+    InsertText(String),
     InsertNewline,
     Backspace,
     DeleteUnderCursor,
@@ -265,6 +268,7 @@ impl Editor {
             Action::EnterNormal => self.enter_normal(),
 
             Action::InsertChar(c) => self.insert_char(c),
+            Action::InsertText(s) => self.insert_text(&s),
             Action::InsertNewline => self.insert_char('\n'),
             Action::Backspace => self.backspace(),
             Action::DeleteUnderCursor => self.delete_under_cursor(),
@@ -370,6 +374,18 @@ impl Editor {
         let idx = self.cursor_char();
         self.edit(Edit::insertion(idx, c.to_string()));
         self.set_cursor_char(idx + 1);
+    }
+
+    fn insert_text(&mut self, text: &str) {
+        if text.is_empty() {
+            return;
+        }
+        let idx = self.cursor_char();
+        // Stand-alone undo step: commit before and after.
+        self.flush_history();
+        self.edit(Edit::insertion(idx, text));
+        self.flush_history();
+        self.set_cursor_char(idx + text.chars().count());
     }
 
     fn backspace(&mut self) {

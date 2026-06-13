@@ -1,8 +1,9 @@
 //! Drawing the editor to the terminal.
 //!
-//! The renderer is a pure function of the editor state plus a list of syntax
-//! [`HighlightSpan`]s: given those, it paints one frame. It owns no state of its
-//! own, which keeps redraws predictable.
+//! The renderer is a pure function of the editor state plus a [`View`] of
+//! everything the surrounding subsystems want shown — syntax highlights, LSP
+//! diagnostics and a completion popup. Given those, it paints one frame. It
+//! owns no state of its own, which keeps redraws predictable.
 
 use std::io::{self, Write};
 
@@ -15,23 +16,49 @@ use crossterm::{QueueableCommand, queue};
 
 use super::theme::Theme;
 use crate::editor::{Editor, Mode};
+use crate::text::Position;
 
 /// Number of columns a tab expands to on screen.
 const TAB_WIDTH: usize = 4;
+/// Maximum rows shown in the completion popup at once.
+const MENU_MAX_ROWS: usize = 8;
+/// Maximum width of the completion popup.
+const MENU_MAX_WIDTH: usize = 40;
 
-/// A run of characters that should be drawn in a given colour. Produced by the
-/// syntax module; an empty list renders everything in the default foreground.
+/// A run of characters that should be drawn in a given colour (from syntax).
 pub struct HighlightSpan {
     pub start: usize,
     pub end: usize,
     pub color: Color,
 }
 
+/// A diagnostic to mark on a line (from the LSP client).
+pub struct LineDiagnostic {
+    pub line: usize,
+    pub tag: char,
+    pub message: String,
+    pub color: Color,
+}
+
+/// A completion popup: the candidate labels and which is selected.
+pub struct CompletionMenu {
+    pub items: Vec<String>,
+    pub selected: usize,
+}
+
+/// Everything the renderer needs beyond the editor state itself.
+#[derive(Default)]
+pub struct View<'a> {
+    pub highlights: &'a [HighlightSpan],
+    pub diagnostics: &'a [LineDiagnostic],
+    pub menu: Option<&'a CompletionMenu>,
+}
+
 /// Paint one frame of the editor into `out`.
 pub fn render(
     out: &mut impl Write,
     editor: &Editor,
-    highlights: &[HighlightSpan],
+    view: &View,
     cols: u16,
     rows: u16,
     theme: &Theme,
@@ -54,7 +81,6 @@ pub fn render(
         queue!(out, MoveTo(0, y as u16), Clear(ClearType::CurrentLine))?;
 
         if line_idx >= buffer.len_lines() {
-            // Past the end of the buffer: a dim tilde, like Vim.
             queue!(
                 out,
                 SetForegroundColor(theme.end_of_buffer),
@@ -64,11 +90,16 @@ pub fn render(
             continue;
         }
 
-        draw_gutter(out, line_idx, editor.cursor.line, gutter_w, theme)?;
+        let marker = view
+            .diagnostics
+            .iter()
+            .find(|d| d.line == line_idx)
+            .map(|d| (d.tag, d.color));
+        draw_gutter(out, line_idx, editor.cursor.line, gutter_w, marker, theme)?;
         draw_line(
             out,
             editor,
-            highlights,
+            view.highlights,
             line_idx,
             text_width,
             selection.as_ref(),
@@ -76,13 +107,17 @@ pub fn render(
         )?;
     }
 
-    draw_status_line(out, editor, cols, rows, theme)?;
+    draw_status_line(out, editor, view, cols, rows, theme)?;
+
+    if let Some(menu) = view.menu {
+        draw_menu(out, editor, menu, gutter_w, text_rows, cols, theme)?;
+    }
+
     position_cursor(out, editor, gutter_w)?;
     out.flush()
 }
 
-/// Width reserved for the line-number gutter: enough digits for the last line,
-/// plus a one-space margin, at least 4 wide.
+/// Width reserved for the line-number gutter.
 fn gutter_width(lines: usize) -> usize {
     let digits = lines.to_string().len();
     (digits + 1).max(4)
@@ -93,14 +128,21 @@ fn draw_gutter(
     line_idx: usize,
     cursor_line: usize,
     gutter_w: usize,
+    marker: Option<(char, Color)>,
     theme: &Theme,
 ) -> io::Result<()> {
+    if let Some((tag, color)) = marker {
+        // A coloured diagnostic tag replaces the margin space.
+        let number = format!("{:>width$}", line_idx + 1, width = gutter_w - 1);
+        queue!(out, SetForegroundColor(theme.gutter), Print(number))?;
+        queue!(out, SetForegroundColor(color), Print(tag), ResetColor)?;
+        return Ok(());
+    }
     let color = if line_idx == cursor_line {
         theme.gutter_current
     } else {
         theme.gutter
     };
-    // Line numbers are 1-based for humans; right-aligned with a trailing space.
     let label = format!("{:>width$} ", line_idx + 1, width = gutter_w - 1);
     queue!(out, SetForegroundColor(color), Print(label), ResetColor)
 }
@@ -115,11 +157,11 @@ fn draw_line(
     theme: &Theme,
 ) -> io::Result<()> {
     let buffer = &editor.buffer;
-    let line_start = buffer.position_to_char(crate::text::Position::new(line_idx, 0));
+    let line_start = buffer.position_to_char(Position::new(line_idx, 0));
     let text = buffer.line(line_idx);
     let text = text.strip_suffix('\n').unwrap_or(&text);
 
-    let mut dcol = 0; // display column, accounting for tab expansion
+    let mut dcol = 0;
     for (ci, ch) in text.chars().enumerate() {
         if dcol >= text_width {
             break;
@@ -173,6 +215,7 @@ fn color_at(highlights: &[HighlightSpan], idx: usize) -> Option<Color> {
 fn draw_status_line(
     out: &mut impl Write,
     editor: &Editor,
+    view: &View,
     cols: usize,
     rows: usize,
     theme: &Theme,
@@ -184,20 +227,23 @@ fn draw_status_line(
         editor.buffer.display_name(),
         modified
     );
-    let right = format!("{}:{} ", editor.cursor.line + 1, editor.cursor.column + 1);
 
-    // The transient message (if any) sits between the file name and position.
-    let middle = if editor.message.is_empty() {
-        String::new()
-    } else {
+    // Prefer an explicit status message; otherwise show a diagnostic on the
+    // cursor's line if there is one.
+    let middle = if !editor.message.is_empty() {
         format!("  {}", editor.message)
+    } else if let Some(d) = view.diagnostics.iter().find(|d| d.line == editor.cursor.line) {
+        format!("  {}: {}", d.tag, d.message)
+    } else {
+        String::new()
     };
+
+    let right = format!("{}:{} ", editor.cursor.line + 1, editor.cursor.column + 1);
 
     let mut line = format!("{left}{middle}");
     let pad = cols.saturating_sub(line.chars().count() + right.chars().count());
     line.push_str(&" ".repeat(pad));
     line.push_str(&right);
-    // Truncate in case the message overflowed.
     let line: String = line.chars().take(cols).collect();
 
     queue!(
@@ -212,14 +258,82 @@ fn draw_status_line(
     )
 }
 
-fn position_cursor(out: &mut impl Write, editor: &Editor, gutter_w: usize) -> io::Result<()> {
+/// Draw the completion popup anchored below the cursor (or above if there's no
+/// room below).
+fn draw_menu(
+    out: &mut impl Write,
+    editor: &Editor,
+    menu: &CompletionMenu,
+    gutter_w: usize,
+    text_rows: usize,
+    cols: usize,
+    theme: &Theme,
+) -> io::Result<()> {
+    if menu.items.is_empty() {
+        return Ok(());
+    }
+    let width = menu
+        .items
+        .iter()
+        .map(|s| s.chars().count())
+        .max()
+        .unwrap_or(0)
+        .clamp(1, MENU_MAX_WIDTH)
+        + 2;
+
+    let cursor_x = gutter_w + display_column(&current_line(editor), editor.cursor.column);
+    let cursor_y = editor.cursor.line.saturating_sub(editor.scroll);
+
+    let rows_shown = menu.items.len().min(MENU_MAX_ROWS);
+    // Below the cursor if it fits, otherwise above.
+    let start_y = if cursor_y + 1 + rows_shown <= text_rows {
+        cursor_y + 1
+    } else {
+        cursor_y.saturating_sub(rows_shown)
+    };
+    let start_x = cursor_x.min(cols.saturating_sub(width));
+
+    // Scroll the visible window so the selected item is in view.
+    let first = menu.selected.saturating_sub(rows_shown - 1).min(
+        menu.items.len().saturating_sub(rows_shown),
+    );
+
+    for row in 0..rows_shown {
+        let idx = first + row;
+        let Some(item) = menu.items.get(idx) else {
+            break;
+        };
+        let mut label: String = item.chars().take(width - 1).collect();
+        while label.chars().count() < width {
+            label.push(' ');
+        }
+        let bg = if idx == menu.selected {
+            theme.menu_selected_bg
+        } else {
+            theme.menu_bg
+        };
+        queue!(
+            out,
+            MoveTo(start_x as u16, (start_y + row) as u16),
+            SetBackgroundColor(bg),
+            SetForegroundColor(theme.menu_fg),
+            Print(label),
+            ResetColor
+        )?;
+    }
+    Ok(())
+}
+
+fn current_line(editor: &Editor) -> String {
     let line = editor.buffer.line(editor.cursor.line);
-    let line = line.strip_suffix('\n').unwrap_or(&line);
-    let dcol = display_column(line, editor.cursor.column);
+    line.strip_suffix('\n').unwrap_or(&line).to_string()
+}
+
+fn position_cursor(out: &mut impl Write, editor: &Editor, gutter_w: usize) -> io::Result<()> {
+    let dcol = display_column(&current_line(editor), editor.cursor.column);
     let x = (gutter_w + dcol) as u16;
     let y = editor.cursor.line.saturating_sub(editor.scroll) as u16;
 
-    // A block cursor in normal/visual, a bar in insert — the usual modal hint.
     let style = if editor.mode == Mode::Insert {
         SetCursorStyle::BlinkingBar
     } else {

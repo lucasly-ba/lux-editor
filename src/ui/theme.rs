@@ -19,6 +19,10 @@ pub struct Theme {
     pub selection_bg: Color,
     /// The `~` markers shown past the end of the buffer.
     pub end_of_buffer: Color,
+    /// Completion popup background / foreground / selected row.
+    pub menu_bg: Color,
+    pub menu_fg: Color,
+    pub menu_selected_bg: Color,
 }
 
 impl Default for Theme {
@@ -30,6 +34,9 @@ impl Default for Theme {
             status_bg: Color::Cyan,
             selection_bg: Color::DarkBlue,
             end_of_buffer: Color::DarkGrey,
+            menu_bg: Color::DarkGrey,
+            menu_fg: Color::White,
+            menu_selected_bg: Color::Blue,
         }
     }
 }

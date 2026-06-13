@@ -148,10 +148,7 @@ impl LspClient {
     /// call once per frame from the editor loop.
     pub fn poll_diagnostics(&mut self) -> Option<(String, Vec<Diagnostic>)> {
         loop {
-            let message = self.stashed.pop_front().or_else(|| self.incoming.try_recv().ok());
-            let Some(message) = message else {
-                return None;
-            };
+            let message = self.stashed.pop_front().or_else(|| self.incoming.try_recv().ok())?;
             if message.get("method").and_then(Json::as_str) == Some("textDocument/publishDiagnostics") {
                 let params = message.get("params")?;
                 let uri = params.get("uri")?.as_str()?.to_string();

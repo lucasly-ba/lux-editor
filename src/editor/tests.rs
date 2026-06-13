@@ -153,6 +153,16 @@ fn backspace_run_is_one_undo_step() {
 }
 
 #[test]
+fn insert_text_is_one_undo_step() {
+    let mut ed = editor("let x = ");
+    ed.apply_action(Action::AppendAtLineEnd); // insert mode at end
+    ed.apply_action(Action::InsertText("println".to_string()));
+    assert_eq!(ed.buffer.rope().to_string(), "let x = println");
+    ed.apply_action(Action::Undo);
+    assert_eq!(ed.buffer.rope().to_string(), "let x = ");
+}
+
+#[test]
 fn quit_blocks_on_unsaved_changes() {
     let mut ed = editor("x");
     ed.apply_action(Action::EnterInsert);
