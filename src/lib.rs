@@ -21,6 +21,7 @@
 //! repository root for the story of how each piece was built.
 
 pub mod rope;
+pub mod text;
 
 /// The crate version, taken from `Cargo.toml` at compile time.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
