@@ -75,8 +75,9 @@ so no state is ever lost.
 Owns the buffer, history, mode, cursor and selection. Every operation is an
 `Action`, and `apply_action` is the single entry point that interprets them — no
 terminal involved, which is why it is thoroughly unit-tested. Handles motions,
-the insert/visual modes, cursor clamping, a remembered goal column, and
-coalescing a run of keystrokes into one undo step.
+the four modes (normal / insert / visual / command, the last being the `:`
+command line for `:w`/`:q`/`:wq`), cursor clamping, a remembered goal column,
+and coalescing a run of keystrokes into one undo step.
 
 ### `input` — key bindings
 The only module that knows about specific keys. Maps `(mode, key)` to an
