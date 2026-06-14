@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 description = "A modal, Helix-inspired terminal text editor written from scratch in Rust"
-repository = "https://github.com/lucasly-ba/lux"
+repository = "https://github.com/lucasly-ba/lux-editor"
 readme = "README.md"
 
 # Library + binary split: the library holds all the editor logic so it can be
