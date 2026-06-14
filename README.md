@@ -68,42 +68,43 @@ Everything here is implemented from scratch unless noted:
 
 [tree-sitter]: https://tree-sitter.github.io/
 
-## Building & running
+## Installing & running
 
-lux needs a Rust toolchain and a C compiler (tree-sitter grammars are C).
-
-#### With Nix (recommended)
-
-A `flake.nix` provides everything (Rust, a C toolchain, `rust-analyzer`):
+lux needs a Rust toolchain (1.85+) and a C compiler (tree-sitter grammars are
+C). Install it onto your `PATH` with cargo:
 
 ```sh
-nix develop            # enter the dev environment
-cargo run --release -- samples/demo.rs
-
-nix run . -- samples/demo.rs   # or just run it, no shell needed
+cargo install --path .
 ```
 
-To install it onto your `PATH` as `lux` (with `lx` as a short alias, the way
-`hx`/`vim` work) — `rust-analyzer` is wired onto the binary's runtime path, so
-LSP keeps working when launched globally:
+Then `lux` is a command you can run from anywhere, like `vim` or `hx`:
 
 ```sh
-nix profile install github:lucasly-ba/lux   # or `nix profile install .` locally
-lux samples/demo.rs
-lx                                            # scratch buffer
+lux              # open an empty scratch buffer
+lux file.rs      # open a file (it's created on save if it doesn't exist yet)
 ```
 
-#### Without Nix
+For diagnostics and completion, make sure `rust-analyzer` is also on your
+`PATH`; without it, lux simply runs without LSP.
+
+#### Trying it without installing
+
+From a clone of the repo:
 
 ```sh
-# needs: rustc/cargo (1.85+), a C compiler, and rust-analyzer on PATH for LSP
-cargo run --release -- path/to/file.rs
+cargo run -- file.rs
 ```
 
-Open with no argument for a scratch buffer:
+#### With Nix
+
+If you use Nix, a flake provides the toolchain and the editor — a dev shell, a
+runnable app, and an installable package (with `rust-analyzer` wired onto the
+binary's runtime path):
 
 ```sh
-cargo run --release
+nix develop                 # dev shell with rustc/cargo/rust-analyzer
+nix run . -- file.rs        # run it without installing
+nix profile install .       # install `lux` onto your PATH
 ```
 
 ## Keys

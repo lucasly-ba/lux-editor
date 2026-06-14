@@ -39,7 +39,7 @@ the toolchain is reproducible, and a one-line `.envrc` (`use flake`) lets
 
 The same flake also exposes the editor as a package, so it isn't only a dev
 environment: `nix build` compiles it, `nix run` launches it, and
-`nix profile install` puts `lux` (and a short `lx` alias) on your `PATH`. Since
+`nix profile install` puts `lux` on your `PATH`. Since
 `rust-analyzer` is an optional *runtime* dependency, the installed binary is
 wrapped to carry it on its own `PATH` — LSP keeps working even when lux is
 launched from outside the dev shell.

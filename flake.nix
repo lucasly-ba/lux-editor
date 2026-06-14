@@ -30,12 +30,10 @@
           nativeBuildInputs = with pkgs; [ pkg-config makeWrapper ];
           # rust-analyzer is an optional *runtime* dependency: lux spawns it for
           # diagnostics and completion. Wrapping it onto PATH means LSP keeps
-          # working when `lux` is launched globally, outside the dev shell. The
-          # `lx` alias mirrors `hx`/`vim`-style short names.
+          # working when `lux` is launched globally, outside the dev shell.
           postInstall = ''
             wrapProgram $out/bin/lux \
               --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.rust-analyzer ]}
-            ln -s lux $out/bin/lx
           '';
           meta = {
             description = "A modal, Helix-inspired terminal text editor written from scratch in Rust.";
