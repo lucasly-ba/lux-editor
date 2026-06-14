@@ -7,20 +7,24 @@
 /// - **Insert** — keys type text. `Esc` returns to Normal.
 /// - **Visual** — like Normal, but motions extend a selection that commands
 ///   (delete, yank) then act on.
+/// - **Command** — a `:`-prefixed command line (`:w`, `:q`, `:wq`, …). Keys
+///   edit the command string; `Enter` runs it, `Esc` cancels.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
     Normal,
     Insert,
     Visual,
+    Command,
 }
 
 impl Mode {
-    /// Uppercase label for the status line (`NOR` / `INS` / `VIS`).
+    /// Uppercase label for the status line (`NOR` / `INS` / `VIS` / `CMD`).
     pub fn short_label(self) -> &'static str {
         match self {
             Mode::Normal => "NOR",
             Mode::Insert => "INS",
             Mode::Visual => "VIS",
+            Mode::Command => "CMD",
         }
     }
 
@@ -30,6 +34,10 @@ impl Mode {
 
     pub fn is_visual(self) -> bool {
         matches!(self, Mode::Visual)
+    }
+
+    pub fn is_command(self) -> bool {
+        matches!(self, Mode::Command)
     }
 }
 
@@ -42,10 +50,13 @@ mod tests {
         assert_eq!(Mode::Normal.short_label(), "NOR");
         assert_eq!(Mode::Insert.short_label(), "INS");
         assert_eq!(Mode::Visual.short_label(), "VIS");
+        assert_eq!(Mode::Command.short_label(), "CMD");
 
         assert!(Mode::Insert.is_insert());
         assert!(!Mode::Normal.is_insert());
         assert!(Mode::Visual.is_visual());
         assert!(!Mode::Insert.is_visual());
+        assert!(Mode::Command.is_command());
+        assert!(!Mode::Normal.is_command());
     }
 }

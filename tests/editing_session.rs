@@ -71,6 +71,32 @@ fn navigate_edit_and_save_round_trip() {
 }
 
 #[test]
+fn write_and_quit_through_the_command_line() {
+    let dir = std::env::temp_dir();
+    let path = dir.join(format!("lux-cmd-{}.txt", std::process::id()));
+    let _ = std::fs::remove_file(&path);
+    std::fs::write(&path, "one\n").unwrap();
+
+    let mut ed = Editor::new(Buffer::from_file(&path).unwrap());
+    ed.apply_action(Action::AppendAtLineEnd);
+    type_str(&mut ed, "!");
+    ed.apply_action(Action::EnterNormal);
+    assert!(ed.buffer.is_modified());
+
+    // `:wq` — save and quit through the command line.
+    ed.apply_action(Action::EnterCommand);
+    for c in "wq".chars() {
+        ed.apply_action(Action::CommandChar(c));
+    }
+    ed.apply_action(Action::CommandExecute);
+
+    assert!(ed.should_quit);
+    assert!(!ed.buffer.is_modified());
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), "one!\n");
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
 fn visual_selection_delete_and_paste() {
     let mut ed = Editor::new(Buffer::from_string("hello brave world"));
     // Select "brave " (the word plus the following space) and delete it.

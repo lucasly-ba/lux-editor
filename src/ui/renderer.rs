@@ -113,7 +113,7 @@ pub fn render(
         draw_menu(out, editor, menu, gutter_w, text_rows, cols, theme)?;
     }
 
-    position_cursor(out, editor, gutter_w)?;
+    position_cursor(out, editor, gutter_w, rows)?;
     out.flush()
 }
 
@@ -220,6 +220,19 @@ fn draw_status_line(
     rows: usize,
     theme: &Theme,
 ) -> io::Result<()> {
+    // In command mode the bottom row becomes the `:` command line instead of
+    // the usual status bar.
+    if editor.mode.is_command() {
+        let text: String = format!(":{}", editor.command).chars().take(cols).collect();
+        return queue!(
+            out,
+            MoveTo(0, (rows - 1) as u16),
+            Clear(ClearType::CurrentLine),
+            ResetColor,
+            Print(text)
+        );
+    }
+
     let modified = if editor.buffer.is_modified() {
         " [+]"
     } else {
@@ -348,7 +361,19 @@ fn current_line(editor: &Editor) -> String {
     line.strip_suffix('\n').unwrap_or(&line).to_string()
 }
 
-fn position_cursor(out: &mut impl Write, editor: &Editor, gutter_w: usize) -> io::Result<()> {
+fn position_cursor(
+    out: &mut impl Write,
+    editor: &Editor,
+    gutter_w: usize,
+    rows: usize,
+) -> io::Result<()> {
+    // On the command line the cursor sits after the typed text on the last row.
+    if editor.mode.is_command() {
+        let x = (1 + editor.command.chars().count()) as u16;
+        let y = rows.saturating_sub(1) as u16;
+        return queue!(out, SetCursorStyle::BlinkingBar, MoveTo(x, y), Show);
+    }
+
     let dcol = display_column(&current_line(editor), editor.cursor.column);
     let x = (gutter_w + dcol) as u16;
     let y = editor.cursor.line.saturating_sub(editor.scroll) as u16;

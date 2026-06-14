@@ -173,3 +173,64 @@ fn quit_blocks_on_unsaved_changes() {
     ed.apply_action(Action::ForceQuit);
     assert!(ed.should_quit);
 }
+
+/// Type a `:` command and run it.
+fn run_command(ed: &mut Editor, cmd: &str) {
+    ed.apply_action(Action::EnterCommand);
+    for c in cmd.chars() {
+        ed.apply_action(Action::CommandChar(c));
+    }
+    ed.apply_action(Action::CommandExecute);
+}
+
+#[test]
+fn command_line_edits_and_cancels() {
+    let mut ed = editor("");
+    ed.apply_action(Action::EnterCommand);
+    assert_eq!(ed.mode, Mode::Command);
+    ed.apply_action(Action::CommandChar('w'));
+    ed.apply_action(Action::CommandChar('q'));
+    assert_eq!(ed.command, "wq");
+    ed.apply_action(Action::CommandCancel);
+    assert_eq!(ed.mode, Mode::Normal);
+    assert!(ed.command.is_empty());
+}
+
+#[test]
+fn backspacing_empty_command_leaves_the_mode() {
+    let mut ed = editor("");
+    ed.apply_action(Action::EnterCommand);
+    ed.apply_action(Action::CommandChar('q'));
+    ed.apply_action(Action::CommandBackspace); // removes 'q'
+    assert_eq!(ed.mode, Mode::Command);
+    assert!(ed.command.is_empty());
+    ed.apply_action(Action::CommandBackspace); // empty -> back to normal
+    assert_eq!(ed.mode, Mode::Normal);
+}
+
+#[test]
+fn colon_q_quits_only_when_clean() {
+    // Clean buffer: `:q` quits.
+    let mut ed = editor("hi");
+    run_command(&mut ed, "q");
+    assert_eq!(ed.mode, Mode::Normal);
+    assert!(ed.should_quit);
+
+    // Modified buffer: `:q` is refused, `:q!` forces it.
+    let mut ed = editor("hi");
+    ed.apply_action(Action::EnterInsert);
+    type_str(&mut ed, "x");
+    ed.apply_action(Action::EnterNormal);
+    run_command(&mut ed, "q");
+    assert!(!ed.should_quit);
+    run_command(&mut ed, "q!");
+    assert!(ed.should_quit);
+}
+
+#[test]
+fn unknown_command_reports_an_error() {
+    let mut ed = editor("");
+    run_command(&mut ed, "nope");
+    assert_eq!(ed.mode, Mode::Normal);
+    assert!(ed.message.contains("unknown command"));
+}

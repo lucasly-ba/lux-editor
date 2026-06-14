@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/rust-2024-orange.svg" alt="Rust 2024">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT">
-  <img src="https://img.shields.io/badge/tests-84-brightgreen.svg" alt="84 tests">
+  <img src="https://img.shields.io/badge/tests-91-brightgreen.svg" alt="91 tests">
 </p>
 
 ---
@@ -58,11 +58,12 @@ Everything here is implemented from scratch unless noted:
   parser) speaking to `rust-analyzer` for diagnostics and completion.
 - **Undo/redo tree** — history is a tree, not a stack, so undoing and then typing
   never throws away a branch (like Vim's `undotree`).
-- **Modal editing** — normal / insert / visual modes with Vim-style motions.
+- **Modal editing** — normal / insert / visual modes with Vim-style motions,
+  plus a `:` command line (`:w`, `:q`, `:wq`, …).
 
 #### Polish
 - Line-number gutter, visual selection, mode-aware cursor shape, status line.
-- Tested (84 tests) and documented (see [`ARCHITECTURE.md`](ARCHITECTURE.md) and
+- Tested (91 tests) and documented (see [`ARCHITECTURE.md`](ARCHITECTURE.md) and
   the build log in [`JOURNEY.md`](JOURNEY.md)).
 
 [tree-sitter]: https://tree-sitter.github.io/
@@ -110,6 +111,7 @@ Normal mode (Vim-like):
 | `x` `dd`        | delete char / line              |
 | `u` `Ctrl-r`    | undo / redo                     |
 | `p`             | paste                           |
+| `:`             | command line (see below)        |
 | `Ctrl-s`        | save                            |
 | `Ctrl-q`        | quit (`Ctrl-x` to force)        |
 
@@ -117,6 +119,15 @@ Insert mode: type to insert, `Esc` to return to normal, `Ctrl-n` for completion.
 
 Visual mode: motions extend the selection; `d`/`x` delete, `y` yank, `Esc`/`v`
 to leave.
+
+Command mode (`:`), Vim-style — `Enter` runs the command, `Esc` cancels:
+
+| Command       | Action                 |
+| ------------- | ---------------------- |
+| `:w`          | write (save)           |
+| `:q`          | quit (blocked if dirty)|
+| `:q!`         | force quit             |
+| `:wq` / `:x`  | write and quit         |
 
 ## Architecture
 
@@ -139,7 +150,7 @@ piece is built the way it is.
 ## Testing
 
 ```sh
-cargo test          # 80 unit + 3 integration (+1 ignored live)
+cargo test          # 86 unit + 4 integration (+1 ignored live)
 cargo clippy        # lint clean
 ```
 

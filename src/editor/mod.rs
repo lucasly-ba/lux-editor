@@ -57,6 +57,12 @@ pub enum Action {
     OpenLineAbove,
     EnterVisual,
     EnterNormal,
+    // Command line (`:w`, `:q`, `:wq`, …)
+    EnterCommand,
+    CommandChar(char),
+    CommandBackspace,
+    CommandExecute,
+    CommandCancel,
     // Editing
     InsertChar(char),
     /// Insert a whole string at the cursor as a single undo step (used when
@@ -98,6 +104,8 @@ pub struct Editor {
     pub scroll: usize,
     /// A transient status-line message.
     pub message: String,
+    /// The text typed after `:` while in [`Mode::Command`] (without the `:`).
+    pub command: String,
     /// Set when the user asks to quit.
     pub should_quit: bool,
     /// Internal yank/delete register (the "clipboard").
@@ -119,6 +127,7 @@ impl Editor {
             goal_column: 0,
             scroll: 0,
             message: String::new(),
+            command: String::new(),
             should_quit: false,
             register: String::new(),
             pending: None,
@@ -268,6 +277,21 @@ impl Editor {
             }
             Action::EnterNormal => self.enter_normal(),
 
+            Action::EnterCommand => self.enter_command(),
+            Action::CommandChar(c) => self.command.push(c),
+            Action::CommandBackspace => {
+                // Backspacing past the start of an empty command line is the
+                // usual way to abandon it, like Vim.
+                if self.command.pop().is_none() {
+                    self.mode = Mode::Normal;
+                }
+            }
+            Action::CommandExecute => self.execute_command(),
+            Action::CommandCancel => {
+                self.command.clear();
+                self.mode = Mode::Normal;
+            }
+
             Action::InsertChar(c) => self.insert_char(c),
             Action::InsertText(s) => self.insert_text(&s),
             Action::InsertNewline => self.insert_char('\n'),
@@ -367,6 +391,38 @@ impl Editor {
             self.goal_column = self.cursor.column;
         }
         self.clamp_cursor();
+    }
+
+    /// Open the `:` command line with an empty buffer.
+    fn enter_command(&mut self) {
+        self.flush_history();
+        self.anchor = None;
+        self.command.clear();
+        self.mode = Mode::Command;
+    }
+
+    /// Parse and run the typed command, then return to Normal mode. Supports the
+    /// familiar Vim write/quit set; anything else reports an error.
+    fn execute_command(&mut self) {
+        let command = std::mem::take(&mut self.command);
+        self.mode = Mode::Normal;
+        match command.trim() {
+            "" => {}
+            "w" => self.save(),
+            "q" => self.quit(false),
+            "q!" => self.quit(true),
+            // `:wq`/`:x` save then quit; a failed save leaves the buffer
+            // modified, so the plain `quit` refuses and nothing is lost.
+            "wq" | "x" => {
+                self.save();
+                self.quit(false);
+            }
+            "wq!" => {
+                self.save();
+                self.quit(true);
+            }
+            other => self.message = format!("unknown command: :{other}"),
+        }
     }
 
     // --- editing ------------------------------------------------------------

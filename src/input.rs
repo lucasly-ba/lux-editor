@@ -26,6 +26,7 @@ impl Input {
     pub fn resolve(&mut self, mode: Mode, key: KeyEvent) -> Action {
         match mode {
             Mode::Insert => self.resolve_insert(key),
+            Mode::Command => resolve_command(key),
             Mode::Normal | Mode::Visual => self.resolve_normal_like(mode, key),
         }
     }
@@ -67,6 +68,7 @@ impl Input {
             KeyCode::Char('q') if ctrl => Action::Quit,
             KeyCode::Char('x') if ctrl => Action::ForceQuit,
             KeyCode::Char('r') if ctrl => Action::Redo,
+            KeyCode::Char(':') => Action::EnterCommand,
 
             // Motions
             KeyCode::Char('h') | KeyCode::Left => Action::MoveLeft,
@@ -118,6 +120,19 @@ impl Input {
 
             _ => Action::Noop,
         }
+    }
+}
+
+/// Resolve a key on the `:` command line. Printable keys edit the command
+/// string, `Enter` runs it, `Esc` cancels, `Backspace` deletes (or leaves the
+/// command line once it is empty). No leader state is involved.
+fn resolve_command(key: KeyEvent) -> Action {
+    match key.code {
+        KeyCode::Esc => Action::CommandCancel,
+        KeyCode::Enter => Action::CommandExecute,
+        KeyCode::Backspace => Action::CommandBackspace,
+        KeyCode::Char(c) => Action::CommandChar(c),
+        _ => Action::Noop,
     }
 }
 
@@ -199,5 +214,36 @@ mod tests {
         assert_eq!(input.resolve(Mode::Normal, ctrl('s')), Action::Save);
         assert_eq!(input.resolve(Mode::Normal, ctrl('r')), Action::Redo);
         assert_eq!(input.resolve(Mode::Normal, ctrl('q')), Action::Quit);
+    }
+
+    fn bare(code: KeyCode) -> KeyEvent {
+        KeyEvent::new(code, KeyModifiers::NONE)
+    }
+
+    #[test]
+    fn colon_opens_the_command_line() {
+        let mut input = Input::new();
+        assert_eq!(input.resolve(Mode::Normal, key(':')), Action::EnterCommand);
+    }
+
+    #[test]
+    fn command_mode_keys() {
+        let mut input = Input::new();
+        assert_eq!(
+            input.resolve(Mode::Command, key('w')),
+            Action::CommandChar('w')
+        );
+        assert_eq!(
+            input.resolve(Mode::Command, bare(KeyCode::Enter)),
+            Action::CommandExecute
+        );
+        assert_eq!(
+            input.resolve(Mode::Command, bare(KeyCode::Backspace)),
+            Action::CommandBackspace
+        );
+        assert_eq!(
+            input.resolve(Mode::Command, bare(KeyCode::Esc)),
+            Action::CommandCancel
+        );
     }
 }
