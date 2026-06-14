@@ -273,6 +273,13 @@ accepts, inserting only the part of the candidate not already typed. If
 rust-analyzer isn't installed, or the file isn't Rust, lux simply runs without
 any of this — the feature degrades gracefully.
 
+In practice that makes the language features **Rust-only** today (the grammar
+and the server are both Rust-specific): to see them, open a `.rs` file inside a
+Cargo project — a directory with a `Cargo.toml` — with `rust-analyzer` on your
+`PATH`. Give it a moment to index, then diagnostics light up the gutter and the
+status bar, and `Ctrl-n` in insert mode opens the completion popup. Other files
+still open and edit fine, just without highlighting or LSP.
+
 That completes the tour: a rope, a buffer, an undo tree, modal editing,
 tree-sitter highlighting with incremental parsing, and a hand-written LSP
 client — each its own module, each tested, wired together by a one-way data

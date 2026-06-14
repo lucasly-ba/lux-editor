@@ -143,6 +143,25 @@ Command mode (`:`), Vim-style — `Enter` runs the command, `Esc` cancels:
 | `:q!`         | force quit             |
 | `:wq` / `:x`  | write and quit         |
 
+## Language support
+
+Syntax highlighting and the language-server features are wired up for **Rust
+only** right now — the tree-sitter grammar and `rust-analyzer` are both
+Rust-specific. Other files still open and edit fine, just as plain text.
+
+Open a `.rs` file inside a Cargo project (a directory with a `Cargo.toml`) and,
+if `rust-analyzer` is on your `PATH`, lux starts it automatically:
+
+- **Diagnostics** — once rust-analyzer finishes indexing (a moment on first
+  open), errors and warnings are marked in the line-number gutter and the
+  message for the cursor's line shows in the status bar.
+- **Completion** — in insert mode, press `Ctrl-n` to request completions; a
+  popup opens, `Ctrl-n`/`Ctrl-p` (or the arrow keys) move the selection, and
+  `Enter` inserts the highlighted candidate (only the part you haven't typed).
+
+If `rust-analyzer` isn't installed, lux just runs without diagnostics and
+completion — editing and highlighting still work.
+
 ## Architecture
 
 The code is layered so each module only depends on the ones below it:
