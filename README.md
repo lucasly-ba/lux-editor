@@ -1,4 +1,4 @@
-<h1 align="center">lux</h1>
+<h1 align="center">Lux</h1>
 
 <p align="center">
   A modal, <a href="https://helix-editor.com/">Helix</a>-inspired terminal text editor, written from scratch in Rust.
@@ -11,8 +11,8 @@
 
 ---
 
-**lux** is a small but real text editor. The interesting parts — the text data
-structure, the syntax engine, the undo system, the language-server client — are
+**Lux** is a small but real text editor. The interesting parts, the text data
+structure, the syntax engine, the undo system, the language-server client, are
 all built by hand rather than pulled off the shelf, so the goal of the project
 is to *understand* how an editor works, not just to use one.
 
@@ -69,7 +69,7 @@ Everything here is implemented from scratch unless noted:
 
 ## Installing & running
 
-lux needs a Rust toolchain (1.85+) and a C compiler (tree-sitter grammars are
+Lux needs a Rust toolchain (1.85+) and a C compiler (tree-sitter grammars are
 C). Install it onto your `PATH` with cargo:
 
 ```sh
@@ -155,9 +155,13 @@ if `rust-analyzer` is on your `PATH`, lux starts it automatically:
 - **Diagnostics** — once rust-analyzer finishes indexing (a moment on first
   open), errors and warnings are marked in the line-number gutter and the
   message for the cursor's line shows in the status bar.
-- **Completion** — in insert mode, press `Ctrl-n` to request completions; a
-  popup opens, `Ctrl-n`/`Ctrl-p` (or the arrow keys) move the selection, and
-  `Enter` inserts the highlighted candidate (only the part you haven't typed).
+- **Completion** — completion is *manual* (it isn't triggered as you type). In
+  insert mode, type a partial name and press `Ctrl-n` to ask rust-analyzer for
+  candidates; a popup opens below the cursor. `Ctrl-n` / `Down` / `Tab` and
+  `Ctrl-p` / `Up` move the selection (it wraps around), `Enter` accepts —
+  inserting only the part you haven't typed yet — and `Esc` dismisses it. If
+  rust-analyzer is still indexing or has nothing to offer, the status bar shows
+  `no completions`.
 
 If `rust-analyzer` isn't installed, lux just runs without diagnostics and
 completion — editing and highlighting still work.
@@ -193,7 +197,7 @@ tested with in-memory pipes.
 
 ## Status & limitations
 
-lux is a focused learning project, not a daily driver. Known limitations:
+Lux is a focused learning project, not a daily driver. Known limitations:
 single buffer/window, full-document LSP sync, no search/replace or config file
 yet, and the rope rebalances by rebuilding rather than rotating. These are
 deliberate trade-offs to keep each subsystem small and readable.

@@ -61,7 +61,13 @@ fn print_help() {
     println!("INSERT MODE:");
     println!("    <text>           type to insert");
     println!("    Esc              return to normal mode");
-    println!("    Ctrl-n           completion popup (Rust files)");
+    println!("    Ctrl-n           request completion (Rust files)");
+    println!();
+    println!("COMPLETION POPUP (after Ctrl-n):");
+    println!("    Ctrl-n Down Tab  next candidate");
+    println!("    Ctrl-p Up        previous candidate");
+    println!("    Enter            accept (inserts only the untyped part)");
+    println!("    Esc              dismiss");
     println!();
     println!("VISUAL MODE:");
     println!("    motions          extend the selection");

@@ -277,8 +277,12 @@ In practice that makes the language features **Rust-only** today (the grammar
 and the server are both Rust-specific): to see them, open a `.rs` file inside a
 Cargo project — a directory with a `Cargo.toml` — with `rust-analyzer` on your
 `PATH`. Give it a moment to index, then diagnostics light up the gutter and the
-status bar, and `Ctrl-n` in insert mode opens the completion popup. Other files
-still open and edit fine, just without highlighting or LSP.
+status bar. Completion is a *manual* trigger, not as-you-type: in insert mode
+press `Ctrl-n` to ask the server for candidates, navigate the popup with
+`Ctrl-n`/`Ctrl-p` (or the arrows / `Tab`), and `Enter` inserts only the part of
+the candidate you haven't typed yet. Until rust-analyzer has finished indexing,
+that request simply reports `no completions`. Other files still open and edit
+fine, just without highlighting or LSP.
 
 That completes the tour: a rope, a buffer, an undo tree, modal editing,
 tree-sitter highlighting with incremental parsing, and a hand-written LSP
