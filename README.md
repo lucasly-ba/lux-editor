@@ -77,6 +77,8 @@ C). Install it onto your `PATH` with cargo:
 cargo install --path .
 ```
 
+This drops the binary in `~/.cargo/bin`, so make sure that directory is on your
+`PATH` (cargo prints a warning if it isn't — rustup users already have it).
 Then `lux` is a command you can run from anywhere, like `vim` or `hx`:
 
 ```sh
