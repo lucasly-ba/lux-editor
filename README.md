@@ -6,7 +6,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/rust-2024-orange.svg" alt="Rust 2024">
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT">
   <img src="https://img.shields.io/badge/tests-91-brightgreen.svg" alt="91 tests">
 </p>
 
@@ -179,7 +178,3 @@ lux is a focused learning project, not a daily driver. Known limitations:
 single buffer/window, full-document LSP sync, no search/replace or config file
 yet, and the rope rebalances by rebuilding rather than rotating. These are
 deliberate trade-offs to keep each subsystem small and readable.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
