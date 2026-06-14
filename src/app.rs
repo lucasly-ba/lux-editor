@@ -297,15 +297,20 @@ fn menu_advance(menu: &mut CompletionMenu, delta: isize) {
 
 /// Insert the selected completion, replacing the partial word already typed.
 fn accept_completion(editor: &mut Editor, menu: CompletionMenu) {
-    let Some(label) = menu.items.get(menu.selected) else {
+    let Some(label) = menu.items.get(menu.selected).cloned() else {
         return;
     };
     let line = editor.buffer.line(editor.cursor.line);
     let line = line.strip_suffix('\n').unwrap_or(&line);
-    let prefix = word_prefix(line, editor.cursor.column);
-    // Only insert the part of the label not already typed.
-    let suffix = label.strip_prefix(&prefix).unwrap_or(label).to_string();
-    editor.apply_action(Action::InsertText(suffix));
+    let prefix_len = word_prefix(line, editor.cursor.column).chars().count();
+    // Replace the partial word with the full candidate. Deleting the typed
+    // prefix first (rather than only appending the untyped tail) keeps the
+    // result correct even when the candidate's case or shape differs from what
+    // was typed — otherwise `hashm` + `HashMap` would become `hashmHashMap`.
+    for _ in 0..prefix_len {
+        editor.apply_action(Action::Backspace);
+    }
+    editor.apply_action(Action::InsertText(label));
 }
 
 /// The identifier characters immediately before `col` on `line`.
@@ -350,5 +355,22 @@ mod tests {
         assert_eq!(menu.selected, 2);
         menu_advance(&mut menu, 1);
         assert_eq!(menu.selected, 0);
+    }
+
+    #[test]
+    fn accept_completion_replaces_the_typed_prefix() {
+        let mut editor = Editor::new(Buffer::new());
+        editor.apply_action(Action::EnterInsert);
+        for c in "hashm".chars() {
+            editor.apply_action(Action::InsertChar(c));
+        }
+        // rust-analyzer can return a candidate whose case differs from the
+        // typed prefix; accepting it must not duplicate what was typed.
+        let menu = CompletionMenu {
+            items: vec!["HashMap".to_string()],
+            selected: 0,
+        };
+        accept_completion(&mut editor, menu);
+        assert_eq!(editor.buffer.rope().to_string(), "HashMap");
     }
 }

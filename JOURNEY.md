@@ -341,5 +341,5 @@ plain `String` (2,000 random ops must always agree), the undo tree has a test
 proving branches survive an undo-then-edit, and the JSON/transport layers are
 tested with in-memory pipes so they need no real server.
 
-Run them with `cargo test` (fast: 86 unit + 4 integration), add
+Run them with `cargo test` (fast: 87 unit + 4 integration), add
 `-- --ignored` for the live LSP test, and `cargo clippy` for lints.
