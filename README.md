@@ -22,6 +22,8 @@ over a hand-written LSP client for live diagnostics and completion.
 
 ## Demo
 
+![Lux editing its own source](docs/screenshot.png)
+
 > A recorded demo lives at `docs/demo.gif` (record one with
 > [`vhs`](https://github.com/charmbracelet/vhs) or `asciinema`). A taste of the
 > UI:
