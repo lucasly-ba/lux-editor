@@ -20,6 +20,10 @@ It is modal like Vim/Helix (normal / insert / visual), highlights code with
 tree-sitter, re-parses incrementally as you type, and talks to `rust-analyzer`
 over a hand-written LSP client for live diagnostics and completion.
 
+## Demo
+
+![Lux editing its own source](docs/screenshot.png)
+
 ## Features
 
 Everything here is implemented from scratch unless noted:
