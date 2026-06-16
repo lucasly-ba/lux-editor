@@ -20,28 +20,6 @@ It is modal like Vim/Helix (normal / insert / visual), highlights code with
 tree-sitter, re-parses incrementally as you type, and talks to `rust-analyzer`
 over a hand-written LSP client for live diagnostics and completion.
 
-## Demo
-
-![Lux editing its own source](docs/screenshot.png)
-
-> A recorded demo lives at `docs/demo.gif` (record one with
-> [`vhs`](https://github.com/charmbracelet/vhs) or `asciinema`). A taste of the
-> UI:
-
-```
-  1 │ use std::collections::HashMap;          NOR  demo.rs
-  2 │
-  3 │ fn word_counts(text: &str) -> HashMap<String, usize> {
-  4 │     let mut counts = HashMap::new();
-  5 │     for word in text.split_whitespace() {
-  6 │         *counts.entry(word).or_insert(0) += 1;
-  7 E│     }   └─ E: mismatched types: expected `String`, found `&str`
-  8 │ }
- ~
- ~
- INS  demo.rs [+]                                             6:38
-```
-
 ## Features
 
 Everything here is implemented from scratch unless noted:
