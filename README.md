@@ -29,19 +29,19 @@ over a hand-written LSP client for live diagnostics and completion.
 Everything here is implemented from scratch unless noted:
 
 #### Internals
-- **Rope** text buffer — a balanced binary tree of text chunks, so edits are
+- **Rope** text buffer: a balanced binary tree of text chunks, so edits are
   `O(log n)` instead of `O(n)`. Character-indexed (never byte-indexed) with
   cached line/char metrics and Fibonacci-criterion rebalancing.
-- **Syntax highlighting** via [tree-sitter] — a real parser, not regex.
-- **Incremental parsing** — after each edit only the changed range is re-parsed,
+- **Syntax highlighting** via [tree-sitter]: a real parser, not regex.
+- **Incremental parsing**: after each edit only the changed range is re-parsed,
   reusing the rest of the syntax tree.
 
 #### Systems
-- **LSP client** — a from-scratch JSON-RPC client (including its own JSON
+- **LSP client**: a from-scratch JSON-RPC client (including its own JSON
   parser) speaking to `rust-analyzer` for diagnostics and completion.
-- **Undo/redo tree** — history is a tree, not a stack, so undoing and then typing
+- **Undo/redo tree**: history is a tree, not a stack, so undoing and then typing
   never throws away a branch (like Vim's `undotree`).
-- **Modal editing** — normal / insert / visual modes with Vim-style motions,
+- **Modal editing**: normal / insert / visual modes with Vim-style motions,
   plus a `:` command line (`:w`, `:q`, `:wq`, …).
 
 #### Polish
@@ -61,7 +61,7 @@ cargo install --path .
 ```
 
 This drops the binary in `~/.cargo/bin`, so make sure that directory is on your
-`PATH` (cargo prints a warning if it isn't — rustup users already have it).
+`PATH` (cargo prints a warning if it isn't; rustup users already have it).
 Then `lux` is a command you can run from anywhere, like `vim` or `hx`:
 
 ```sh
@@ -82,7 +82,7 @@ cargo run -- file.rs
 
 #### With Nix
 
-If you use Nix, a flake provides the toolchain and the editor — a dev shell, a
+If you use Nix, a flake provides the toolchain and the editor: a dev shell, a
 runnable app, and an installable package (with `rust-analyzer` wired onto the
 binary's runtime path):
 
@@ -118,7 +118,7 @@ Insert mode: type to insert, `Esc` to return to normal, `Ctrl-n` for completion.
 Visual mode: motions extend the selection; `d`/`x` delete, `y` yank, `Esc`/`v`
 to leave.
 
-Command mode (`:`), Vim-style — `Enter` runs the command, `Esc` cancels:
+Command mode (`:`), Vim-style. `Enter` runs the command, `Esc` cancels:
 
 | Command       | Action                 |
 | ------------- | ---------------------- |
@@ -130,25 +130,25 @@ Command mode (`:`), Vim-style — `Enter` runs the command, `Esc` cancels:
 ## Language support
 
 Syntax highlighting and the language-server features are wired up for **Rust
-only** right now — the tree-sitter grammar and `rust-analyzer` are both
+only** right now. The tree-sitter grammar and `rust-analyzer` are both
 Rust-specific. Other files still open and edit fine, just as plain text.
 
 Open a `.rs` file inside a Cargo project (a directory with a `Cargo.toml`) and,
 if `rust-analyzer` is on your `PATH`, lux starts it automatically:
 
-- **Diagnostics** — once rust-analyzer finishes indexing (a moment on first
+- **Diagnostics**: once rust-analyzer finishes indexing (a moment on first
   open), errors and warnings are marked in the line-number gutter and the
   message for the cursor's line shows in the status bar.
-- **Completion** — completion is *manual* (it isn't triggered as you type). In
+- **Completion**: completion is *manual* (it isn't triggered as you type). In
   insert mode, type a partial name and press `Ctrl-n` to ask rust-analyzer for
   candidates; a popup opens below the cursor. `Ctrl-n` / `Down` / `Tab` and
-  `Ctrl-p` / `Up` move the selection (it wraps around), `Enter` accepts —
-  inserting only the part you haven't typed yet — and `Esc` dismisses it. If
+  `Ctrl-p` / `Up` move the selection (it wraps around), `Enter` accepts
+  (inserting only the part you haven't typed yet), and `Esc` dismisses it. If
   rust-analyzer is still indexing or has nothing to offer, the status bar shows
   `no completions`.
 
 If `rust-analyzer` isn't installed, lux just runs without diagnostics and
-completion — editing and highlighting still work.
+completion. Editing and highlighting still work.
 
 ## Architecture
 

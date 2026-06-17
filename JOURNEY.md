@@ -2,7 +2,7 @@
 
 This file is a developer log. It explains, in plain language, **why** each part
 of lux exists and **how** it works, in the order it was built. If you are coming
-back to this code after a break — or reading it for the first time — start here.
+back to this code after a break (or reading it for the first time), start here.
 
 lux is a modal, Helix-inspired terminal text editor written from scratch in Rust.
 The goal was to build, by hand, the pieces that real editors (Helix, Neovim,
@@ -28,7 +28,7 @@ cargo test
 cargo run -- src/main.rs
 ```
 
-The shell is a plain `mkShell` whose package list is the whole toolchain —
+The shell is a plain `mkShell` whose package list is the whole toolchain:
 `rustc`, `cargo`, `clippy`, `rustfmt`, `rust-analyzer`, and a C toolchain. That
 C toolchain is there because of the very first build fix: rustc shells out to
 the system `cc` to link the final binary, and tree-sitter's grammars are C
@@ -41,7 +41,7 @@ The same flake also exposes the editor as a package, so it isn't only a dev
 environment: `nix build` compiles it, `nix run` launches it, and
 `nix profile install` puts `lux` on your `PATH`. Since
 `rust-analyzer` is an optional *runtime* dependency, the installed binary is
-wrapped to carry it on its own `PATH` — LSP keeps working even when lux is
+wrapped to carry it on its own `PATH`. LSP keeps working even when lux is
 launched from outside the dev shell.
 
 ## 1. Project layout
@@ -96,7 +96,7 @@ Two design decisions worth calling out:
 
 The tests (`src/rope/tests.rs`) include a 2,000-operation fuzz test that runs
 the same random inserts/deletes against the rope and a plain `String` and checks
-they always agree — the string is the obvious reference implementation.
+they always agree. The string is the obvious reference implementation.
 
 ## 3. The buffer (`src/text/`)
 
@@ -113,7 +113,7 @@ an editor needs around the text:
   off the end of a line.
 
 Crucially, **every mutation goes through one method**, `Buffer::apply`, and
-produces an [`Edit`] — a small record of "at character `at`, this text was
+produces an [`Edit`]: a small record of "at character `at`, this text was
 replaced by that text". Because an edit carries both the old and the new text,
 it is self-contained: you can undo it by applying its `inverse()` (swap the two
 strings), and later subsystems (incremental parsing, LSP sync) can watch the
@@ -124,7 +124,7 @@ is what lets undo, syntax and LSP all stay simple.
 
 Most editors implement undo as a stack: undo pops a change, redo pushes it back.
 The catch is that if you undo a few changes and then type something new, the
-redo stack is thrown away — the work you'd undone is gone.
+redo stack is thrown away. The work you'd undone is gone.
 
 lux instead keeps history as a **tree** (the same idea as Vim's `undotree` and
 Helix). Each change is a node; making a new change after an undo creates a
@@ -145,17 +145,17 @@ count.
 
 This is where lux becomes an editor. It is **modal**, like Vim and Helix:
 
-- **Normal** mode — keys are commands (move around, delete, switch modes),
-- **Insert** mode — keys type text, `Esc` returns to Normal,
-- **Visual** mode — motions extend a selection that a command then acts on,
-- **Command** mode — a `:` command line (`:w`, `:q`, `:wq`, `:q!`, `:x`).
+- **Normal** mode: keys are commands (move around, delete, switch modes),
+- **Insert** mode: keys type text, `Esc` returns to Normal,
+- **Visual** mode: motions extend a selection that a command then acts on,
+- **Command** mode: a `:` command line (`:w`, `:q`, `:wq`, `:q!`, `:x`).
 
 The key design choice is that **everything the user can do is an [`Action`]**
 (`MoveLeft`, `InsertChar('a')`, `DeleteLine`, `Undo`, …) and there is exactly
 one function that interprets them, `Editor::apply_action`. The input layer's only
 job is to turn a keypress into an action for the current mode; all the actual
 editing logic lives behind that one entry point, with no terminal in sight. That
-is why the editor has a thorough test suite that never opens a terminal — it
+is why the editor has a thorough test suite that never opens a terminal. It
 just feeds actions in and checks the text and cursor that come out.
 
 Details worth highlighting:
@@ -167,7 +167,7 @@ Details worth highlighting:
 - **Undo grouping.** Typing a whole word should undo in one step, not one
   keystroke at a time. The editor accumulates contiguous inserts (and contiguous
   backspaces) into a single *pending* edit and only commits it to the history
-  tree on a boundary — leaving insert mode, an undo, or a non-contiguous edit
+  tree on a boundary: leaving insert mode, an undo, or a non-contiguous edit
   (`coalesce`). The tests `a_typing_run_is_one_undo_step` and
   `backspace_run_is_one_undo_step` pin this behaviour down.
 - **Word motions** classify characters into word / punctuation / whitespace, the
@@ -175,12 +175,12 @@ Details worth highlighting:
 - **The `:` command line.** Pressing `:` switches to Command mode, where keys
   build a string shown on the bottom row instead of editing the buffer; `Enter`
   runs it, `Esc` cancels, and backspacing past the start drops back to Normal.
-  This stays faithful to the one-entry-point design — the command keys are just
+  This stays faithful to the one-entry-point design: the command keys are just
   more [`Action`]s (`CommandChar`, `CommandExecute`, …), and `execute_command`
   maps the parsed command onto the *same* save/quit code the `Ctrl-S`/`Ctrl-Q`
   bindings already use. `:wq` deliberately routes through the ordinary quit
   guard, so if the write fails the buffer is still marked modified and the quit
-  is refused — you can't lose work to a typo'd path.
+  is refused. You can't lose work to a typo'd path.
 
 ## 6. Input and the terminal (`src/input.rs`, `src/ui/`, `src/app.rs`)
 
@@ -194,7 +194,7 @@ Three small pieces turn the testable core into a real, running editor:
   plus a list of highlight spans: it draws the line-number gutter, the visible
   slice of text (expanding tabs, clipping long lines), the visual selection, and
   a status line showing the mode, file name, modified flag and cursor position.
-  It also picks the cursor shape — a block in Normal/Visual, a bar in Insert —
+  It also picks the cursor shape (a block in Normal/Visual, a bar in Insert),
   which is the usual visual hint for modal editors.
 - **`app.rs`** is the *runtime*: the only module that touches the real terminal.
   It enters raw mode and the alternate screen behind a `TerminalGuard` whose
@@ -212,20 +212,20 @@ undo/redo, select, save and quit.
 ## 7. Syntax highlighting (`src/syntax/`)
 
 Highlighting is done with **tree-sitter**, the same parser generator Helix and
-Neovim use — not regular expressions. tree-sitter builds a real concrete syntax
+Neovim use, not regular expressions. tree-sitter builds a real concrete syntax
 tree from the grammar (the Rust grammar is C, compiled at build time), and the
 grammar ships a *highlight query* that tags nodes with names like `keyword`,
 `string` or `function`. lux runs that query over the tree and maps the names to
 colours (`ui/theme.rs`). Because it parses the grammar, it colours things a
 regex never could: raw strings, lifetimes, generics, nested brackets.
 
-The second, harder half is **incremental** parsing — the explicit Tier-1 goal of
+The second, harder half is **incremental** parsing: the explicit Tier-1 goal of
 "only re-parse what changed". Re-parsing the whole file on every keystroke is
 wasteful, so after each edit lux:
 
 1. diffs the new text against the previous snapshot to find the **minimal
    changed byte range** (everything between the longest common prefix and
-   suffix — `diff_input_edit`),
+   suffix, via `diff_input_edit`),
 2. reports it to tree-sitter as an `InputEdit` via `Tree::edit`, and
 3. re-parses while handing the *old* tree back in.
 
@@ -242,22 +242,22 @@ highlighting, and an incremental edit staying consistent.
 
 ## 8. The LSP client (`src/lsp/`)
 
-The last big piece is talking to a **language server** — `rust-analyzer` — to get
+The last big piece is talking to a **language server** (`rust-analyzer`) to get
 real diagnostics (the red squiggles) and completions. The Language Server
 Protocol is JSON-RPC 2.0 sent over the server's stdin/stdout, and lux implements
 every layer of it by hand:
 
-1. **`json.rs`** — a from-scratch JSON value type, recursive-descent parser
+1. **`json.rs`**: a from-scratch JSON value type, recursive-descent parser
    (full escapes, `\uXXXX` surrogate pairs, numbers, nesting) and serializer.
    No `serde_json`; writing it is part of showing the wire format is understood.
-2. **`transport.rs`** — the message framing. Each message is a `Content-Length`
+2. **`transport.rs`**: the message framing. Each message is a `Content-Length`
    header (counted in *bytes*, which the tests pin down with multi-byte text), a
    blank line, then the JSON body. Works over any reader/writer, so it's tested
    with in-memory buffers.
-3. **`protocol.rs`** — the specific message bodies lux sends (`initialize`,
+3. **`protocol.rs`**: the specific message bodies lux sends (`initialize`,
    `didOpen`, `didChange`, `completion`) and the two responses it reads
    (published diagnostics and completion items).
-4. **`client.rs`** — the lifecycle. It spawns the server as a child process,
+4. **`client.rs`**: the lifecycle. It spawns the server as a child process,
    runs a background thread that reads replies into a channel, sends requests
    with incrementing ids and matches responses back to them, stashes
    diagnostics notifications for the editor to pick up, and even answers the
@@ -271,11 +271,11 @@ the cursor's line in the status bar. `Ctrl-n` in insert mode requests
 completions and opens a popup; `Ctrl-n`/`Ctrl-p`/arrows navigate it and `Enter`
 accepts, inserting only the part of the candidate not already typed. If
 rust-analyzer isn't installed, or the file isn't Rust, lux simply runs without
-any of this — the feature degrades gracefully.
+any of this. The feature degrades gracefully.
 
 In practice that makes the language features **Rust-only** today (the grammar
 and the server are both Rust-specific): to see them, open a `.rs` file inside a
-Cargo project — a directory with a `Cargo.toml` — with `rust-analyzer` on your
+Cargo project (a directory with a `Cargo.toml`) with `rust-analyzer` on your
 `PATH`. Give it a moment to index, then diagnostics light up the gutter and the
 status bar. Completion is a *manual* trigger, not as-you-type: in insert mode
 press `Ctrl-n` to ask the server for candidates, navigate the popup with
@@ -286,20 +286,20 @@ fine, just without highlighting or LSP.
 
 That completes the tour: a rope, a buffer, an undo tree, modal editing,
 tree-sitter highlighting with incremental parsing, and a hand-written LSP
-client — each its own module, each tested, wired together by a one-way data
+client, each its own module, each tested, wired together by a one-way data
 flow from key press to repaint.
 
 ## 9. The audit (bugs the tests missed)
 
 After the first version was "done", everything compiled, clippy was clean and
-~70 tests passed — but a focused audit turned up real bugs that the unit tests
+~70 tests passed, but a focused audit turned up real bugs that the unit tests
 hadn't caught, mostly on the live language-server path that pure unit tests
 can't exercise. Worth recording, because *passing tests are not the same as
 correct*:
 
 - **The editor froze the instant LSP started.** `poll_diagnostics` would pop a
-  message, and if it wasn't a diagnostic, push it *back* onto the stash — so the
-  next pop returned the same message forever. rust-analyzer floods `$/progress`
+  message, and if it wasn't a diagnostic, push it *back* onto the stash, which
+  made the next pop return the same message forever. rust-analyzer floods `$/progress`
   notifications while it indexes, so this was an immediate infinite loop. The
   unit tests never fed a non-diagnostic notification, so they were green. Fix:
   drop non-diagnostic notifications instead of re-stashing them, and split out
@@ -334,8 +334,8 @@ Two layers, the standard Rust split:
   real consumer would: `editing_session.rs` drives whole editing sessions, and
   `lsp_live.rs` drives a real language server.
 
-The files with *no* tests — `lib.rs`, `main.rs`, and the `mod.rs` re-export
-files — are pure glue with nothing to assert; testing them would add noise, not
+The files with *no* tests (`lib.rs`, `main.rs`, and the `mod.rs` re-export
+files) are pure glue with nothing to assert; testing them would add noise, not
 safety. A few highlights worth knowing about: the rope is fuzz-tested against a
 plain `String` (2,000 random ops must always agree), the undo tree has a test
 proving branches survive an undo-then-edit, and the JSON/transport layers are
