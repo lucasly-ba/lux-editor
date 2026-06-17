@@ -33,7 +33,7 @@ fn main() -> ExitCode {
 }
 
 fn print_help() {
-    println!("lux {} — a modal, Helix-inspired text editor", lux::VERSION);
+    println!("lux {}: a modal, Helix-inspired text editor", lux::VERSION);
     println!();
     println!("USAGE:");
     println!("    lux [FILE]");

@@ -607,7 +607,7 @@ impl Editor {
 
     fn quit(&mut self, force: bool) {
         if self.buffer.is_modified() && !force {
-            self.message = "Unsaved changes — save (Ctrl-S) or force quit (Ctrl-Q)".to_string();
+            self.message = "Unsaved changes. Save with Ctrl-S or force quit with Ctrl-Q.".to_string();
         } else {
             self.should_quit = true;
         }
