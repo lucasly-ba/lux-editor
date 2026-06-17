@@ -14,8 +14,8 @@
 //!   the total number of `char`s and the total number of `\n`s. Caching these
 //!   summaries is what makes indexing by character or by line `O(log n)`.
 //!
-//! Every edit is expressed in terms of two primitives — [`Node::split`] (cut
-//! the tree at a character index) and [`Node::concat`] (join two trees) — which
+//! Every edit is expressed in terms of two primitives: [`Node::split`] (cut
+//! the tree at a character index) and [`Node::concat`] (join two trees). This
 //! keeps the logic small and easy to reason about. After an edit the tree is
 //! rebalanced if it has become too lopsided; "too lopsided" is defined using
 //! the Fibonacci criterion from Boehm, Atkinson & Plass (1995): a tree of depth
@@ -264,8 +264,8 @@ impl Node {
 
 /// An owned, growable rope of UTF-8 text.
 ///
-/// `Rope` always owns a (possibly empty) root node, so every operation is total
-/// — there is no "empty tree" special case to forget about.
+/// `Rope` always owns a (possibly empty) root node, so every operation is total:
+/// there is no "empty tree" special case to forget about.
 pub struct Rope {
     root: Node,
 }

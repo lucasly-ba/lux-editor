@@ -32,7 +32,7 @@ const COMPLETION_TIMEOUT: Duration = Duration::from_millis(1500);
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
 /// Put the terminal into raw / alternate-screen mode and guarantee it is
-/// restored when this value is dropped — even on a panic or an error path.
+/// restored when this value is dropped, even on a panic or an error path.
 struct TerminalGuard;
 
 impl TerminalGuard {
@@ -215,8 +215,8 @@ pub fn run(path: Option<PathBuf>) -> io::Result<()> {
 }
 
 /// Try to start `rust-analyzer` for `path`. Returns `(None, None)` if the file
-/// isn't Rust, has no path, or the server can't be launched — lux just runs
-/// without LSP in that case.
+/// isn't Rust, has no path, or the server can't be launched. In that case lux
+/// just runs without LSP.
 fn start_language_server(
     path: Option<&Path>,
     editor: &Editor,
@@ -306,7 +306,7 @@ fn accept_completion(editor: &mut Editor, menu: CompletionMenu) {
     // Replace the partial word with the full candidate. Deleting the typed
     // prefix first (rather than only appending the untyped tail) keeps the
     // result correct even when the candidate's case or shape differs from what
-    // was typed — otherwise `hashm` + `HashMap` would become `hashmHashMap`.
+    // was typed. Otherwise `hashm` + `HashMap` would become `hashmHashMap`.
     for _ in 0..prefix_len {
         editor.apply_action(Action::Backspace);
     }

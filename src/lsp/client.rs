@@ -177,7 +177,7 @@ impl LspClient {
             }
             // Answer server requests so the server doesn't stall; *drop*
             // everything else. Critically, non-diagnostic notifications are not
-            // re-stashed here — doing so would re-pop them forever.
+            // re-stashed here; doing so would re-pop them forever.
             if is_server_request(&message) {
                 self.reply_null(&message);
             }
@@ -262,7 +262,7 @@ mod tests {
         assert!(!is_publish_diagnostics(&server_request));
 
         // A plain notification (e.g. progress) has a method but no id, and must
-        // NOT be treated as diagnostics — this is the case that used to loop.
+        // NOT be treated as diagnostics. This is the case that used to loop.
         let progress = notification_envelope("$/progress", Json::Null);
         assert!(!is_server_request(&progress));
         assert!(!is_publish_diagnostics(&progress));

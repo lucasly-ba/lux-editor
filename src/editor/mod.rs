@@ -4,8 +4,8 @@
 //! Everything the user can do is expressed as an [`Action`]. The input layer
 //! turns key presses into actions (depending on the current [`Mode`]), and
 //! [`Editor::apply_action`] is the single place those actions are interpreted.
-//! Keeping all editing logic behind `apply_action` — with no terminal or
-//! rendering in sight — is what makes the editor unit-testable.
+//! Keeping all editing logic behind `apply_action`, with no terminal or
+//! rendering in sight, is what makes the editor unit-testable.
 
 mod mode;
 mod selection;
@@ -617,7 +617,7 @@ impl Editor {
 /// Try to merge two consecutive edits into one undo step. Returns `None` when
 /// they are not contiguous, which forces a new undo group.
 ///
-/// Only the cases that show up during continuous typing/deleting are handled —
+/// Only the cases that show up during continuous typing/deleting are handled;
 /// anything else starts a fresh step, which is the conservative, correct choice.
 fn coalesce(prev: &Edit, next: &Edit) -> Option<Edit> {
     let prev_insert = prev.removed.is_empty();

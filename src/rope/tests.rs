@@ -89,7 +89,7 @@ fn line_navigation() {
 
 #[test]
 fn unicode_is_indexed_by_char_not_byte() {
-    // "héllo" — é is two bytes in UTF-8, so byte and char indices diverge.
+    // "héllo": é is two bytes in UTF-8, so byte and char indices diverge.
     let mut r = Rope::from_str("héllo");
     assert_eq!(r.len_chars(), 5);
     assert_eq!(r.char_at(1), Some('é'));

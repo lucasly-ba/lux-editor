@@ -1,7 +1,7 @@
 //! Undo/redo as a **tree**, not a stack.
 //!
 //! With a plain undo stack, undoing some changes and then typing something new
-//! throws away the redo branch — the work you undid is gone forever. Vim's
+//! throws away the redo branch: the work you undid is gone forever. Vim's
 //! `undotree` and Helix keep the history as a *tree* instead: each change is a
 //! node, and making a new change after an undo creates a *branch* rather than
 //! discarding the old one. Nothing is ever lost; you can navigate back to any
@@ -58,7 +58,7 @@ impl History {
     /// under the current one and moving onto it.
     ///
     /// If the current node already had children (because we had undone), this
-    /// simply adds another branch — the existing ones stay reachable.
+    /// simply adds another branch; the existing ones stay reachable.
     pub fn record(&mut self, edit: Edit) {
         let new = self.nodes.len();
         self.nodes.push(Node {

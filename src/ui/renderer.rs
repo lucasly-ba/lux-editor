@@ -1,7 +1,7 @@
 //! Drawing the editor to the terminal.
 //!
 //! The renderer is a pure function of the editor state plus a [`View`] of
-//! everything the surrounding subsystems want shown — syntax highlights, LSP
+//! everything the surrounding subsystems want shown: syntax highlights, LSP
 //! diagnostics and a completion popup. Given those, it paints one frame. It
 //! owns no state of its own, which keeps redraws predictable.
 

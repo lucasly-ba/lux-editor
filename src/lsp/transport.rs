@@ -3,8 +3,8 @@
 //! LSP messages are sent over a stream (the server's stdin/stdout) using the
 //! same framing as HTTP: a `Content-Length` header, a blank line, then exactly
 //! that many bytes of JSON body. This module reads and writes that frame over
-//! any [`Read`]/[`Write`], which keeps it testable with in-memory buffers — no
-//! real server needed.
+//! any [`Read`]/[`Write`], which keeps it testable with in-memory buffers and
+//! no real server needed.
 
 use std::io::{self, BufRead, Write};
 

@@ -6,10 +6,10 @@
 //! message framed by a `Content-Length` header.
 //!
 //! lux implements every layer of this itself:
-//! - [`json`] — a hand-written JSON value, parser and serializer,
-//! - [`transport`] — the `Content-Length` framing over any reader/writer,
-//! - [`protocol`] — the message bodies and the types lux understands,
-//! - [`client`] — spawning the server and the request/response lifecycle.
+//! - [`json`]: a hand-written JSON value, parser and serializer,
+//! - [`transport`]: the `Content-Length` framing over any reader/writer,
+//! - [`protocol`]: the message bodies and the types lux understands,
+//! - [`client`]: spawning the server and the request/response lifecycle.
 //!
 //! [Language Server Protocol]: https://microsoft.github.io/language-server-protocol/
 

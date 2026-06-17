@@ -3,11 +3,11 @@
 /// Which mode the editor is in. This is the heart of "modal" editing: the same
 /// key does different things depending on the mode.
 ///
-/// - **Normal** — the default. Keys are commands (move, delete, change mode).
-/// - **Insert** — keys type text. `Esc` returns to Normal.
-/// - **Visual** — like Normal, but motions extend a selection that commands
+/// - **Normal**: the default. Keys are commands (move, delete, change mode).
+/// - **Insert**: keys type text. `Esc` returns to Normal.
+/// - **Visual**: like Normal, but motions extend a selection that commands
 ///   (delete, yank) then act on.
-/// - **Command** — a `:`-prefixed command line (`:w`, `:q`, `:wq`, …). Keys
+/// - **Command**: a `:`-prefixed command line (`:w`, `:q`, `:wq`, …). Keys
 ///   edit the command string; `Enter` runs it, `Esc` cancels.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {

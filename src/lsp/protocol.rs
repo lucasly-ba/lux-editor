@@ -3,8 +3,8 @@
 //! This builds the JSON-RPC requests/notifications lux sends (`initialize`,
 //! `didOpen`, `didChange`, `completion`) and parses the two responses it cares
 //! about: published diagnostics and completion items. It is deliberately a
-//! small slice of the protocol — enough to be useful and to show the shape of
-//! it — not a complete implementation.
+//! small slice of the protocol: enough to be useful and to show the shape of
+//! it, not a complete implementation.
 
 use std::path::Path;
 

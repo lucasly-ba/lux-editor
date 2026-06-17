@@ -1,7 +1,7 @@
 //! A small, dependency-free JSON implementation.
 //!
 //! The LSP client speaks JSON-RPC, so it needs to read and write JSON. Rather
-//! than pull in `serde_json`, lux implements just enough JSON by hand — a value
+//! than pull in `serde_json`, lux implements just enough JSON by hand: a value
 //! type, a recursive-descent parser and a serializer. It is a self-contained,
 //! well-tested piece, and writing it (rather than importing it) is part of the
 //! point: it shows the wire format is understood, not just used.

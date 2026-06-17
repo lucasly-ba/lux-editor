@@ -1,5 +1,5 @@
 //! End-to-end tests that drive the editor through its **public** API, the same
-//! way the binary does — just without a terminal. These exercise the rope,
+//! way the binary does, just without a terminal. These exercise the rope,
 //! buffer, history tree and modal state machine working together.
 
 use lux::editor::{Action, Editor, Mode};
@@ -83,7 +83,7 @@ fn write_and_quit_through_the_command_line() {
     ed.apply_action(Action::EnterNormal);
     assert!(ed.buffer.is_modified());
 
-    // `:wq` — save and quit through the command line.
+    // `:wq` saves and quits through the command line.
     ed.apply_action(Action::EnterCommand);
     for c in "wq".chars() {
         ed.apply_action(Action::CommandChar(c));

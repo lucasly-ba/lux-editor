@@ -2,8 +2,8 @@
 //!
 //! Two Tier-1 ideas live here:
 //!
-//! 1. **A real parser, not regex.** lux uses [tree-sitter] — the same parser
-//!    generator Helix and Neovim use — to build a concrete syntax tree of the
+//! 1. **A real parser, not regex.** lux uses [tree-sitter] (the same parser
+//!    generator Helix and Neovim use) to build a concrete syntax tree of the
 //!    code, then runs the grammar's highlight query over it to colour tokens.
 //!    Because it understands the grammar, it gets things regex can't: nested
 //!    strings, raw identifiers, generics, and so on.
@@ -13,7 +13,7 @@
 //!    range (the text between the common prefix and common suffix of the old and
 //!    new contents), tells tree-sitter about it via `Tree::edit`, and re-parses
 //!    feeding the *old* tree back in. tree-sitter then reuses every unchanged
-//!    subtree and only does work proportional to the edit — not the file.
+//!    subtree and only does work proportional to the edit, not the file.
 //!
 //! [tree-sitter]: https://tree-sitter.github.io/
 
@@ -130,7 +130,7 @@ impl Highlighter {
 
         // Paint a per-character colour buffer for the window. Processing the
         // largest nodes first means the smallest (most specific) capture wins
-        // wherever they overlap — e.g. a function name inside an expression.
+        // wherever they overlap, e.g. a function name inside an expression.
         captures.sort_by_key(|(s, e, _)| std::cmp::Reverse(e - s));
         let span_chars = end_char - start_char;
         let mut colors = vec![None; span_chars];
@@ -203,7 +203,7 @@ fn diff_input_edit(old: &str, new: &str) -> Option<InputEdit> {
     }
 
     // Longest common suffix that doesn't overlap the prefix, on a char boundary.
-    // (The two sides index `ob`/`nb` from their own ends on purpose — the
+    // (The two sides index `ob`/`nb` from their own ends on purpose: the
     // strings differ in length, so clippy's "use the same len" hint is wrong.)
     let mut suffix = 0;
     let max_suffix = (ob.len() - start).min(nb.len() - start);
